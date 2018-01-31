@@ -10,11 +10,11 @@ def display_class_students_info(**kwargs):
     class_chosen = kwargs.get('class_chosen')
     print()
     print('学生成绩列表'.center(20, '-'))
-    print('姓名'.ljust(4, chr(12288)), '班级'.ljust(5), '成绩'.ljust(3))
+    print('姓名'.ljust(4, chr(12288)), '班级'.ljust(13), '成绩'.ljust(3))
     for student in class_chosen.class_students_info:
         info = student.__dict__
         class_name = Class.get_obj_by_id(info.get('class_id', '')).name
-        print(info.get('name').ljust(4, chr(12288)), class_name.ljust(8), info.get('exam_result', ''))
+        print(info.get('name').ljust(4, chr(12288)), class_name.ljust(15), info.get('exam_result', ''))
     print()
 
 
@@ -50,7 +50,7 @@ def change_class_students_info(**kwargs):
         return
     student.exam_result = int(new_exam_result)
     print('分数修改修改成功'.center(20, '-'))
-    log_generate(log_type='teacher', id=teacher.id,
+    log_generate(log_type='teacher', id=teacher.id_,
                  message={'操作类型': '修改学生成绩', '教师姓名': teacher.name,
                           '修改学生姓名': name, '班级名': class_chosen.name, '修改后成绩': new_exam_result})
     student.save()

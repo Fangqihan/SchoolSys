@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-   @Time    : 18-1-18 下午4:01
 # @Author  : QiHanFang    @Email   : qihanfang@foxmail.com
 from core.models import *
-from conf.settings import *
-from lib.utils import hash_pwd, format_print
-from core.logger import log_generate
 
 
 def display_schools_info():

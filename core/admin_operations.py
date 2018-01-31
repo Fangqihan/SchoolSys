@@ -99,3 +99,12 @@ def show_all_login_students_detail():
         print(student.__dict__)
 
 
+# def display_all_school(school_lst):
+#     print()
+#     print('分校列表'.center(30, '-'))
+#     print('学校名称'.ljust(10), '地址'.ljust(15))
+#     for school in school_lst:
+#         print(str(school.name).ljust(10), str(school.address).ljust(15))
+
+
+

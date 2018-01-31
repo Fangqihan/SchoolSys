@@ -3,6 +3,7 @@
 
 
 from core.auth import *
+from core.models import *
 
 
 def student_enroll():
@@ -32,7 +33,7 @@ def students_pay_tuition(**kwargs):
     student.active = 1
     student.save()
     print('%s同学, 恭喜您缴费激活成功!' % student.name)
-    log_generate(log_type='student', id=student.id,
+    log_generate(log_type='student', id=student.id_,
                  message={'type': '激活', '学生姓名': student.name, '充值金额': money})
 
 
@@ -52,7 +53,7 @@ def take_exam(**kwargs):
 
     student.save()
     print('\033[1;35m 考试完成，请静候成绩！ \033[0m', end='\n\n')
-    log_generate(log_type='student', id=student.id,
+    log_generate(log_type='student', id=student.id_,
                  message={'操作类型': '考试', '学生姓名': student.name, '考试分数': result, '课程': course.name})
     input()
 

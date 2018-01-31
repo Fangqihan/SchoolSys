@@ -30,7 +30,7 @@ if not os.path.exists(STUDENT_PATH):
 if not os.path.exists(COURSE_PATH):
     os.makedirs(COURSE_PATH)
 
-ADMIN_ACCOUNT = {'username': 'lynnfang', 'password': 'fqh202'}
+ADMIN_ACCOUNT = {'username': '', 'password': ''}
 
 DEBUG = False
 

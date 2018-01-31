@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-   @Time    : 18-1-17 下午12:57
 # @Author  : QiHanFang    @Email   : qihanfang@foxmail.com
 import pickle
-import os
-import copy
 import re
-import datetime
-import string
 from random import randint
 
 from conf.settings import *
@@ -119,7 +115,7 @@ class School(Base):
                 print(str(course.name).ljust(9), str(course.learning_time).ljust(8), course.price)
             print(''.center(30,'-'))
         else:
-            print('\033[1;35m目前没有引进任何课程\033[0m')
+            print('\033[1;35m 目前没有引进任何课程 \033[0m')
             return
 
     def display_school_classes(self):
@@ -127,20 +123,15 @@ class School(Base):
         if self.school_classes:
             print()
             print('校区班级列表'.center(20, '-'))
+            print('%s已开设课程如下'.center(30, '-') % self.name)
+            print('NAME'.ljust(14), 'MONTH'.ljust(8), 'TEACHER')
             for school_class in self.school_classes:
                 class_course = Course.get_obj_by_id(school_class.course_id)
-                if not class_course:
-                    print('班级课程有误')
-                    return
-                teacher = Teacher.get_obj_by_id(school_class.teacher_id)
-                if not teacher:
-                    print('老师不存在')
-                    return
-                print(str(school_class.name).ljust(8), class_course.name.ljust(8), teacher.name)
+                class_teacher = Teacher.get_obj_by_id(school_class.teacher_id)
+                print(str(school_class.name).ljust(14), class_course.name.ljust(8), class_teacher.name)
             print(''.center(20, '-'))
         else:
             print('\033[1;35m该学校目前还未开班 \033[0m')
-            return
 
     def display_school_teachers(self):
         """显示当前学校所有老师"""
@@ -165,8 +156,8 @@ class School(Base):
             course = pickle.load(open('%s/%s' % (Course.save_path, course_id), 'rb'))
             if course.school_id == self.id_:
                 course_lst.append(course)
-        if not course_lst:
-            print('本学校未开设课程')
+        # if not course_lst:
+        #     print('本学校未开设课程')
         return course_lst
 
     @property
@@ -205,6 +196,10 @@ class School(Base):
                 school_student_lst.append(school_student)
         return school_student_lst
 
+if __name__ == '__main__':
+    l = School.get_all_objects()
+    print(l)
+
 
 class Teacher(Base):
     save_path = TEACHER_PATH
@@ -212,39 +207,49 @@ class Teacher(Base):
     def __init__(self, school):
         print()
         print('招聘讲师中'.center(20, '-'))
-        if DEBUG:
-            print('in Teacher')
-        name = input('姓名 >>> ').strip()
-        age = input('年龄 >>> ').strip()
-        gender = input('性别 >>> ').strip()
-        teaching_course = input('擅长课程 >>> ').strip()
-        teaching_years = input('经验(年) >>> ').strip()
-        if not name or gender not in ('male', 'female', '男', '女') or \
-                not teaching_years.isdigit():
-            print('\033[1;35m姓名或性别输入有误\033[0m')
-            return
-        if teaching_course not in HOT_COURSES:
-            print("对不起，您的课程不符合招聘要求['python', 'linux', 'go', 'java', 'php', 'c', 'c++']")
-            return
-        if int(teaching_years) not in range(2, 30):
-            print('\033[1;35m对不起，我们招聘的教师至少需要2年工作经验 \033[0m')
-            return
-        super().__init__(name)
-        login_pwd = input('请输入您的登录密码(至少六位数)>>> ').strip()
-        if len(login_pwd) < 6 or not login_pwd.isalnum():
-            print('\033[1;35m密码至少需要六位字母或数字 \033[0m')
-            return
-        self.login_pwd = hash_pwd(login_pwd)
-        self.school_id = school.id_
-        self.age = age
-        self.gender = gender
-        self.teaching_course = teaching_course
-        self.teaching_years = teaching_years
-        print('招聘讲师成功'.center(20, '-'))
-        self.save()
-        log_generate(log_type='admin', id='admin',message={
-            'type': '招收教师', '教师姓名': name, '性别': gender,
-            '教授课程': teaching_course, '经验(年)': int(teaching_years)})
+        while True:
+            teaching_course = input('擅长课程(退出:q)>>> ').strip()
+            if teaching_course == 'q':
+                return
+            if teaching_course in HOT_COURSES :  # 只招收特定课程的教师
+                teaching_years = input('经验(年) >>> ').strip()
+                if teaching_years.isdigit() and int(teaching_years) in range(1, 50):  # 筛选经验不足一年的教师
+                    while True:  # 输入错误则循环输入
+                        name = input('姓名(不能为空, 退出:q) >>> ').strip()
+                        if name == 'q':
+                            return
+                        teacher_name_lst = [teacher.name for teacher in school.school_teachers]
+                        if name not in teacher_name_lst:
+                            age = input('年龄(数字) >>> ').strip()
+                            gender = input('性别(男|女) >>> ').strip()
+                            if name and age.isdigit() and gender in ('男', '女') and teaching_years.isdigit():
+                                while True:
+                                    super().__init__(name)
+                                    login_pwd = input('请输入您的登录密码(至少六位数)>>> ').strip()
+                                    if len(login_pwd) >= 6 and login_pwd.isalnum():
+                                        self.login_pwd = hash_pwd(login_pwd)
+                                        self.school_id = school.id_
+                                        self.age = age
+                                        self.gender = gender
+                                        self.teaching_course = teaching_course
+                                        self.teaching_years = teaching_years
+                                        print('招聘讲师成功'.center(20, '-'))
+                                        self.save()
+                                        log_generate(log_type='admin', id='admin', message={
+                                            'type': '招收教师', '教师姓名': name, '性别': gender,
+                                            '教授课程': teaching_course, '经验(年)': int(teaching_years)})
+                                        return
+
+                                    else:
+                                        print('\033[1;35m密码至少需要六位字母或数字 \033[0m')
+                            else:
+                                print('\033[1;35m姓名或性别输入有误\033[0m')
+                        else:
+                            print('\033[1;35m 对不起,该教师已经招聘 \033[0m')
+                else:
+                    print('\033[1;35m对不起，我们招聘的教师至少需要2年工作经验 \033[0m')
+            else:
+                print("对不起，您的课程不符合招聘要求['python', 'linux', 'go', 'java', 'php', 'c', 'c++']")
 
 
 class Course(Base):
@@ -253,31 +258,37 @@ class Course(Base):
     def __init__(self, school):
         print()
         print('引进课程中'.center(20, '-'))
-        course_name = input('课程名 >>> ').strip()
-        if course_name not in HOT_COURSES:
-            print('\033[1;35m此课程不在规划范围内 \033[0m')
-            return
-        if course_name in [course.name for course in school.school_courses]:
-            print('对不起,课程<%s>本校区已经创建' % course_name)
-            return
-        learning_time = input('学习时长(月) >>> ').strip()
-        price = input('收费(元) >>> ').strip()
-        if not learning_time.isdigit() or not price.isdigit():
-            print('\033[1;35m时间或价格输入有误 \033[0m')
-            return
+        while True:
+            course_name = input('课程名(退出q) >>> ').strip()
+            if course_name == 'q':
+                return
+            if course_name in HOT_COURSES:  # 判断课程是否在规划范围内
+                if course_name not in [course.name for course in school.school_courses]:  # 判断是否重复创建
+                    learning_time = input('学习时长(月) >>> ').strip()
+                    price = input('收费(元) >>> ').strip()
+                    if learning_time.isdigit() and price.isdigit():  # 输入合法性
+                        if int(learning_time) in range(1, 13):
+                            super().__init__(course_name)
+                            self.school_id = school.id_
+                            self.learning_time = learning_time
+                            self.price = price
+                            print('课程引进成功'.center(20, '-'))
+                            print()
+                            self.save()
+                            log_generate(log_type='admin', id='admin', message={
+                                'type': '课程引进', '课程名': course_name, '课程时长': learning_time})
+                            return
+                        else:
+                            print('\033[1;35m学习时长应该保持在1-13个月 \033[0m')
 
-        if not int(learning_time) in range(1, 13):
-            print('\033[1;35m学习时长应该保持在1-13个月 \033[0m')
-            return
-        super().__init__(course_name)
-        self.school_id = school.id_
-        self.learning_time = learning_time
-        self.price = price
-        print('课程引进成功'.center(20, '-'))
-        print()
-        self.save()
-        log_generate(log_type='admin', id='admin', message={
-            'type': '课程引进', '课程名': course_name, '课程时长': learning_time})
+                    else:
+                        print('\033[1;35m时间或价格输入有误 \033[0m')
+
+                else:
+                    print('\033[1;35m 对不起,课程<%s>本校区已经创建 \033[0m' % course_name)
+
+            else:
+                print('\033[1;35m此课程不在规划范围内 \033[0m')
 
 
 class Class(Base):
@@ -291,46 +302,61 @@ class Class(Base):
             print('in Class')
         self.school_id = school.id_
         while True:
-            school.display_school_courses()
-            course_name = input('请选择课程名称 >>> ').strip()
-            if course_name in [course.name for course in school.school_courses]:
-                self.course_id = Course.get_obj_by_name(course_name).id_
-                course_teachers_lst = []
-                for school_teacher in school.school_teachers:
-                    if school_teacher.teaching_course == course_name:
-                        course_teachers_lst.append(school_teacher)
-                if course_teachers_lst:
-                    school.display_school_teachers()
-                    teacher_name = input('选择教师 >>> ').strip()
-                    if not Teacher.get_obj_by_name(teacher_name):
-                        print('\033[1;35m教师不存在 \033[0m')
+            if school.school_courses:   # 判断本校是否有课程
+                school.display_school_courses()
+                course_name = input('请选择课程名称 >>> ').strip()
+                if course_name in [course.name for course in school.school_courses]:  # 筛选重复课程
+                    self.course_id = Course.get_obj_by_name(course_name).id_
+                    course_teachers_lst = []
+                    for school_teacher in school.school_teachers:
+                        if school_teacher.teaching_course == course_name:
+                            course_teachers_lst.append(school_teacher)
+                    if course_teachers_lst:  # 筛选擅长本课程的教师
+                        school.display_school_teachers()
+                        while True:
+                            teacher_name = input('选择教师 >>> ').strip()
+                            if Teacher.get_obj_by_name(teacher_name):  # 获取合适的教师
+                                if Teacher.get_obj_by_name(teacher_name).teaching_course == course_name:
+                                    self.teacher_id = Teacher.get_obj_by_name(teacher_name).id_
+                                    class_name = input('输入班级名称>>> ').strip()
+                                    if class_name not in [class_.name for class_ in school.school_classes]:
+                                        super().__init__(class_name)
+                                        print('班级创建成功'.center(20, '-'))
+                                        print()
+                                        self.save()
+                                        log_generate(log_type='admin', id='admin', message={
+                                            'type': '成立班级', '课程名': course_name, '班级名': class_name, '班级教师': teacher_name})
+                                        return
+
+                                    else:
+                                        print('\033[1;35m 班级名重复 \033[0m')
+
+                                else:
+                                    print('\033[1;35m您选择的教师不擅长本班级课程 \033[0m')
+
+                            else:
+                                print('\033[1;35m 教师姓名输入有误 \033[0m')
+
+                    else:
+                        print('\033[1;35m对不起,目前没有招收此课程的教师\033[0m')
                         return
-                    if Teacher.get_obj_by_name(teacher_name).teaching_course != course_name:
-                        print('\033[1;35m您选择的教师不擅长本班级课程 \033[0m')
-                        return
-                    self.teacher_id = Teacher.get_obj_by_name(teacher_name).id_
-                    print('班级创建成功'.center(20, '-'))
-                    print()
-                    self.save()
-                    log_generate(log_type='admin', id='admin', message={
-                        'type': '成立班级', '课程名': course_name, '班级名': class_name, '班级教师': teacher_name})
-                    break
 
                 else:
-                    print('\033[1;35m对不起,目前没有招收此课程的教师\033[0m')
-                    break
+                    print('\033[1;35m该课程未引进,请重新选择\033[0m')
             else:
-                print('\033[1;35m该课程未引进,请重新选择\033[0m')
+                print('\033[1;35m 本小区目前未引进任何课程 \033[0m')
+                return
 
     @property
     def class_students_info(self):
+        """打印学生信息,排除未激活的学生"""
         student_lst = Student.get_all_objects()
         class_students_lst = []
         if not student_lst:
             print('本校区目前没有招收学生')
             return
         for student in student_lst:
-            if student.class_id == self.id_:
+            if student.class_id == self.id_ and student.active == 1:
                 class_students_lst.append(student)
         return class_students_lst
 
@@ -340,78 +366,95 @@ class Student(Base):
     save_path = STUDENT_PATH  # 类属性,保存类的对象的路径
 
     def __init__(self):
-        if DEBUG:
-            print('in Student')
         print('\n'+'注册中'.center(20, '-'))
         school_lst = School.get_all_objects()
-        print()
-        print('分校列表'.center(30, '-'))
-        if school_lst:  # 判断是否有学校对象
-            print('学校名称'.ljust(10), '地址'.ljust(15))
-            for school in school_lst:
-                print(str(school.name).ljust(10), str(school.address).ljust(15))
-            school_name = input('请选择学校(输入学校名称) >>> ').strip()
-            if School.get_obj_by_name(school_name):  # 判断是否有名称符合输入的学校对象
-                self.school_id = School.get_obj_by_name(school_name).id_
-                school = School.get_obj_by_id(self.school_id)
-                class_lst = Class.get_all_objects()
-                if not class_lst:
-                    print('\033[1;35m 目前没有创建班级 \033[0m')
+        # 判断是否有学校对象
+        while True:
+            if school_lst:
+                print()
+                print('分校列表'.center(30, '-'))
+                print('学校名称'.ljust(10), '地址'.ljust(15))
+                for school in school_lst:
+                    print(str(school.name).ljust(10), str(school.address).ljust(15))
+                # 判断是否有名称符合输入的学校对象
+                school_name = input('请选择学校(退出:q)>>> ').strip()
+                if school_name == 'q':  # 选择退出,返回主界面
                     return
-                school.display_school_classes()
-                class_choice = input('请选择班级 >>> ').strip()
-                if Class.get_obj_by_name(class_choice):  # 通过名称获取班级
-                    while True:
-                        login_pwd = input('请设置登录密码(至少六位数)>>> ').strip()
-                        if len(login_pwd) >= 6 and login_pwd.isalnum():
-                            self.login_pwd = hash_pwd(login_pwd)
-                            self.active = 0
-                            self.class_id = Class.get_obj_by_name(class_choice).id_
-                            name = input('输入姓名(中文名字优先) >>> ').strip()
-                            age = input('年龄(必须为数字) >>> ').strip()
-                            gender = input('性别(男|女) >>> ').strip()
-                            if name and gender  in ('男', '女') and age.isdigit():
-                                super().__init__(name)
-                                self.age = age
-                                self.gender = gender
-                                mobile = input('联系方式 >>> ').strip()
-                                while True:
-                                    if re.match('1[358]\d{9}', mobile):
-                                        self.mobile = mobile
-                                        address = input('请输入您的住址>>> ').strip()
-                                        if address:
-                                            self.address = address
-                                            print('%s同学,恭喜您注册成功!' % name)
-                                            print()
-                                            self.save()
-                                            log_generate(log_type='student', id=self.id_,
-                                                         message={'type': '注册', 'name': self.name, 'school': school.name,
-                                                                  'course': self.name, 'class': class_choice, 'address': address})
-                                            return
+                if School.get_obj_by_name(school_name):  # 判断学校名称输入是否有误
+                    school = School.get_obj_by_name(school_name)
+                    if school.school_classes:
+                        self.school_id = school.id_
+                        school.display_school_classes()  # 展示班级列表
+                        # 获取当前学习的所有班级
+                        class_name_lst = [class_.name for class_ in school.school_classes]  # 班级名称列表
+                        while True:
+                            class_name = input('请选择班级 >>> ').strip()
+                            if class_name in class_name_lst:
+                                class_ = Class.get_obj_by_name(class_name)
+                                if class_:  # 通过名称获取班级
+                                    while True:
+                                        login_pwd = input('请设置登录密码(至少六位数)>>> ').strip()
+                                        if len(login_pwd) >= 6 and login_pwd.isalnum():
+                                            self.login_pwd = hash_pwd(login_pwd)
+                                            self.active = 0
+                                            self.class_id = Class.get_obj_by_name(class_name).id_
+                                            name = input('输入姓名(中文名字优先) >>> ').strip()
+                                            # 判断是否存在重复姓名
+                                            student_name_lst = [stu.name for stu in class_.class_students_info]
+                                            if name not in student_name_lst:
+                                                age = input('年龄(必须为数字) >>> ').strip()
+                                                gender = input('性别(男|女) >>> ').strip()
+                                                if name and gender  in ('男', '女') and age.isdigit():
+                                                    super().__init__(name)
+                                                    self.age = age
+                                                    self.gender = gender
+                                                    mobile = input('联系方式 >>> ').strip()
+                                                    while True:
+                                                        if re.match('1[358]\d{9}', mobile):
+                                                            self.mobile = mobile
+                                                            address = input('请输入您的住址>>> ').strip()
+                                                            if address:
+                                                                self.address = address
+                                                                print('%s同学,恭喜您注册成功!' % name)
+                                                                print()
+                                                                self.save()
+                                                                log_generate(log_type='student', id=self.id_,
+                                                                             message={'type': '注册', 'name': self.name, 'school': school.name,
+                                                                                      'course': self.name, 'class': class_name, 'address': address})
+                                                                return
 
-                                        else:
-                                            print('\033[1;35m住址不能为空 \033[0m')
+                                                            else:
+                                                                print('\033[1;35m住址不能为空 \033[0m')
+
+                                                        else:
+                                                            print('\033[1;35m电话格式有误 \033[0m')
+
+                                                else:
+                                                    print('\033[1;35m 名字,性别(male|female)或者年龄输入有误 \033[0m', end='\n\n')
+
+                                            else:
+                                                print('\033[1;35m 学生姓名重复 \033[0m')
 
                                     else:
-                                        print('\033[1;35m电话格式有误 \033[0m')
+                                        print('\033[1;35m密码至少需要六位字母或数字 \033[0m')
+
+                                else:
+                                    print('\033[1;35m 班级名称有误,请重新输入 \033[0m')
 
                             else:
-                                print('\033[1;35m 名字,性别(male|female)或者年龄输入有误 \033[0m', end='\n\n')
-
-
+                                print('\033[1;35m 班级名输入有误,请重新输入 \033[0m')
                     else:
-                        print('\033[1;35m密码至少需要六位字母或数字 \033[0m')
+                        print('\033[1;35m 对不起,当前学校没有创建班级 \033[0m')
 
                 else:
-                    print('\033[1;35m 班级名称有误,请重新输入 \033[0m')
+                    print('\033[1;35m 学校名称输入有误,请重新输入 \033[0m')
 
             else:
-                print('\033[1;35m 学校名称输入有误,请重新输入 \033[0m')
-
-        else:
-            print('\033[1;35m 对不起,目前没有校区 \033[0m')
+                print('\033[1;35m 对不起,目前没有校区 \033[0m')
+                return
 
     @property
     def final_exam_result(self):
         exam_result = randint(60, 100)
         return exam_result
+

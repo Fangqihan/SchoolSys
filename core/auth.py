@@ -16,7 +16,7 @@ admin_school_chosen = ''
 
 def teacher_login_and_choose_class(func):
     """老师身份验证"""
-    def inner(**kwargs):
+    def inner():
         global teacher_login_status
         global teacher_online
         global teacher_class_chosen
@@ -36,27 +36,26 @@ def teacher_login_and_choose_class(func):
             print()
             teacher_login_status = 1
             teacher_online = teacher
-            log_generate(log_type='teacher', id=teacher_online.id,
+            log_generate(log_type='teacher', id=teacher_online.id_,
                          message={'操作类型': '登录', '姓名': teacher_online.name})
 
-            classes = Class.get_all_objects()
+            classes = Class.get_all_objects()  # 获取所有的班级
             if classes:
-                teacher_classes_lst = [teacher_class for teacher_class in classes if teacher_class.teacher_id == teacher.id]
+                # 找到与此老师绑定的班级
+                teacher_classes_lst = [teacher_class for teacher_class in classes if teacher_class.teacher_id == teacher.id_]
                 if teacher_classes_lst:
-                    print('class_name'.ljust(14), 'class_course')
+                    print('NAME'.ljust(14), 'COURSE')
                     for teacher_class in teacher_classes_lst:
                         course = Course.get_obj_by_id(teacher_class.course_id)
                         print(teacher_class.name.ljust(14), course.name)
                     print(''.ljust(30, '-'))
                     while True:
-                        class_name = input('请选择上课班级(输入班级全称)>>> ').strip()
-                        for teacher_class in teacher_classes_lst:
-                            if teacher_class.name == class_name:
-                                global teacher_class_chosen
-                                teacher_class_chosen = teacher_class
-                                break
-                        if teacher_class_chosen:
-                            log_generate(log_type='teacher', id=teacher.id,
+                        class_name = input('请选择上课班级(输入班级全称)>>> ').strip()  # 输入班级名称
+                        class_name_lst = [class_.name for class_ in teacher_classes_lst]
+                        if class_name in class_name_lst:
+                            global teacher_class_chosen
+                            teacher_class_chosen = teacher_class
+                            log_generate(log_type='teacher', id=teacher.id_,
                                          message={'操作类型': '选择上课班级', '姓名': teacher.name,
                                                   '班级名': teacher_class_chosen.name})
                             return func(teacher=teacher_online, class_chosen=teacher_class_chosen)
@@ -83,7 +82,7 @@ def teacher_logout():
     global teacher_class_chosen
     global teacher_login_status
     if teacher_online:
-        log_generate(log_type='teacher', id=teacher_online.id,
+        log_generate(log_type='teacher', id=teacher_online.id_,
                      message={'操作类型': '退出登录', '姓名': teacher_online.name})
     teacher_online = None
     teacher_class_chosen = None
@@ -134,7 +133,7 @@ def student_logout():
     global student_online
     global student_login_status
     if student_login_status:
-        log_generate(log_type='student', id=student_online.id,
+        log_generate(log_type='student', id=student_online.id_,
                      message={'操作类型': '退出登录', '姓名': student_online.name})
         student_login_status = 0
         student_online = None
@@ -161,7 +160,6 @@ def admin_login_and_choose_school(func):
                          message={'type': '登录'})
             admin_login_status = 1
             global admin_school_chosen
-
             if not admin_school_chosen:  # 首次登录
                 school_lst = School.get_all_objects()
                 if school_lst:  # 有学校对象

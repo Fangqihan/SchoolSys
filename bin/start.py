@@ -18,24 +18,27 @@ while True:
     print('学校系统主界面'.center(20, '-'))
     choice = input('1.学生界面\n2.讲师界面\n\033[1;31m3.管理员界面(隐藏属性)\033[0m\n请输入对应的编号(\033[1;35m 退出系统:q \033[0m)>>> ').strip()
     print()
-    if choice == '1':
 
+    # 学生操作界面
+    if choice == '1':
         while True:
             print('学生操作界面'.center(20, '-'))
-            tip = input('1.报名注册\n2.缴费激活\n3.阶段考试\nq.退出登录\n(请输入对应的编号)>>> ')
+            tip = input('1.报名注册\n2.缴费激活\n3.阶段考试\n4.退出登录\n(请输入对应的编号)>>> ')
             if tip == '1':
                 student_enroll()
             elif tip == '2':
                 students_pay_tuition()
+                input()
             elif tip == '3':
                 take_exam()
-            elif tip == 'q':
+            elif tip == '4':
                 print()
                 choice = input('退出系统(q)>>> ')
                 if choice == 'q' or choice == 'quit':
                     student_logout()
                     break
 
+    # 教师操作界面
     elif choice == '2':
         while True:
             print('教师操作界面'.center(20, '-'))
@@ -48,14 +51,14 @@ while True:
                 change_class_students_info()
                 input()
             elif choice == '3':
-                tip = input('确定返回主界面(y)>>> ')
-                if tip == 'y' or tip == 'yes':
+                tip = input('确定返回主界面(q)>>> ')
+                if tip == 'q' or tip == 'quit':
                     teacher_logout()
                     break
 
+    # 管理员操作界面
     elif choice == '3':
         while True:
-
             tip = input(
 '''------管理员操作界面-------
 1.引进课程
@@ -65,43 +68,35 @@ while True:
 5.本校班级信息
 6.本校老师信息
 7.本校学生信息
-\033[1;35m8.新建学校 \033[0m
+8.新建学校
 9.返回主界面
 -------------------------------
 (请输入对应的操作编号)>>> ''')
-
             if tip == '2':
                 create_teacher()
                 input()
-
             elif tip == '3':
                 create_class()
                 input()
-
             elif tip == '1':
                 create_course()
                 input()
-
             elif tip == '4':
                 display_school_courses_info()
                 input()
-
             elif tip == '6':
                 display_school_teachers_info()
                 input()
-
             elif tip == '5':
                 display_school_classes_info()
                 input()
-
             elif tip == '7':
                 display_school_students_info()
                 input()
-
             elif tip == '8':
+                # 直接进入新的学校进行管理
                 open_school()
                 input()
-
             elif tip == '9':
                 choice = input('返回主界面(q) >>> ')
                 if choice == 'q' or choice == 'quit':
