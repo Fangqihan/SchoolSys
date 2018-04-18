@@ -44,6 +44,7 @@ def log_generate(**kwargs):
     elif log_type == 'admin':
         message = kwargs.get('message', {})
         file_name = LOG_TYPES['admin']
+
         logger = logging.getLogger('admin')
         logger.setLevel(level=logging.INFO)
 
@@ -54,6 +55,7 @@ def log_generate(**kwargs):
         file_handler.setFormatter(file_formatter)
 
         logger.info(message)
+        # 记得移除handler
         logger.removeHandler(file_handler)
 
 

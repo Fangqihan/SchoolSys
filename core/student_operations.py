@@ -13,6 +13,7 @@ def student_enroll():
 
 @student_login
 def students_pay_tuition(**kwargs):
+    """"""
     student = kwargs.get('student')
     if student.active:
         print('\033[1;35m 您的账户已经是激活状态 \033[0m\n')

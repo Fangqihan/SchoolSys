@@ -6,17 +6,19 @@
 import sys
 import os
 
+# 作为启动文件必须载入当前项目文件路径
 PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PROJECT_PATH)
 
+# 导入功能模块
 from core.teacher_operations import *
 from core.student_operations import *
 from core.admin_operations import *
 
-
 while True:
     print('学校系统主界面'.center(20, '-'))
-    choice = input('1.学生界面\n2.讲师界面\n\033[1;31m3.管理员界面(隐藏属性)\033[0m\n请输入对应的编号(\033[1;35m 退出系统:q \033[0m)>>> ').strip()
+    choice = input('1.学生界面\n2.讲师界面\n\033[1;31m3.管理员界面(隐藏属性)\033[0m\n请输入对应的编号'
+                   '(\033[1;35m 退出系统:q \033[0m)>>> ').strip()
     print()
 
     # 学生操作界面
@@ -60,6 +62,7 @@ while True:
     elif choice == '3':
         while True:
             tip = input(
+
 '''------管理员操作界面-------
 1.引进课程
 2.招收讲师

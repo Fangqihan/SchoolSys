@@ -15,6 +15,3 @@ def display_schools_info():
         print('请创建先学校')
     print()
 
-
-
-

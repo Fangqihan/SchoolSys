@@ -3,7 +3,7 @@
 
 from core.auth import *
 from core.admin_functions import *
-
+from lib.utils import format_print
 
 @admin_login_and_choose_school
 def create_teacher(**kwargs):
@@ -64,47 +64,34 @@ def display_school_classes_info(**kwargs):
     """显示本学校的班级信息"""
     school = kwargs.get('school')
     school_class_lst = school.school_classes
-    if school_class_lst:
-        school.display_school_classes()
-        choice = input('查看班级信息(y)>>> ')
-        if choice == 'y' or choice == 'yes':
-            class_name = input('输入班级名称>>> ')
-            if not Class.get_obj_by_name(class_name):
-                print('对不起,您输入的班级名称有误')
-                return
-            class_obj = Class.get_obj_by_name(class_name)
-            students_list = class_obj.class_students_info
-            students_list = [student for student in students_list if student.active]
-            if not students_list:
-                print('目前本班级没有学生')
-                return
-            print('姓名'.ljust(6, chr(12288)), '性别'.ljust(4,chr(12288)), '联系方式'.ljust(8, chr(12288)), '地址'.ljust(20, chr(12288)))
-            for student in students_list:
-                print(format_print(student.name, 6), format_print(student.gender, 4),
-                      format_print(student.mobile, 12), format_print(student.address, 20))
-    else:
+    if not school_class_lst:
         print('\033[1;35m 目前为开设班级 \033[0m')
         return
+    school.display_school_classes()
+    choice = input('查看班级信息(y)>>> ')
+    if choice == 'y' or choice == 'yes':
+        class_name = input('输入班级名称>>> ')
+        if not Class.get_obj_by_name(class_name):
+            print('对不起,您输入的班级名称有误')
+            return
+        class_obj = Class.get_obj_by_name(class_name)
+        students_list = class_obj.class_students_info
+        students_list = [student for student in students_list if student.active]
+        if not students_list:
+            print('目前本班级没有学生')
+            return
+        print('姓名'.ljust(6, chr(12288)), '性别'.ljust(4,chr(12288)),
+              '联系方式'.ljust(8, chr(12288)), '地址'.ljust(20, chr(12288)))
 
+        for student in students_list:
+            print(format_print(student.name, 6), format_print(student.gender, 4),
+                  format_print(student.mobile, 12), format_print(student.address, 20))
 
-@admin_login_build_school
-def open_school(**kwargs):
-    """调用装饰器函数登录并直接创建新校区"""
-    pass
 
 
 def show_all_login_students_detail():
     students = Student.get_all_objects()
     for student in students:
         print(student.__dict__)
-
-
-# def display_all_school(school_lst):
-#     print()
-#     print('分校列表'.center(30, '-'))
-#     print('学校名称'.ljust(10), '地址'.ljust(15))
-#     for school in school_lst:
-#         print(str(school.name).ljust(10), str(school.address).ljust(15))
-
 
 
